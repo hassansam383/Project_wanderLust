@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URL: "mongodb://mongo:27017/wanderLust"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: ["sh", "-c", "node init/index.js && node app.js"]
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  mongo-data:
